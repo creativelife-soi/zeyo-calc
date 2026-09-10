@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>반려동물 하루 목표 칼로리</title>
+<meta name="description" content="목표 체중을 넣으면 RER과 하루 목표 칼로리를 단계별로 계산해 줍니다. AAHA 2021 가이드라인 기준.">
+<meta property="og:title" content="반려동물 하루 목표 칼로리">
+<meta property="og:description" content="목표 체중 → RER → 하루 목표 칼로리. 3단계로 우리 아이 다이어트 급여량을 계산합니다.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&amp;display=swap">
+<style>
+  :root{
+    --blue:#5F7DFF; --blue-deep:#3A51C0; --blue-tint:#E9EDFF; --blue-line:#C2CCFF;
+    --ink:#1A2038; --ink-soft:#5A6284; --ink-faint:#939AB5;
+    --paper:#F4F6FD; --panel:#FFFFFF; --rule:#DDE2F2;
+    --warn:#B0452F; --warn-soft:#FBEAE4; --radius:4px;
+  }
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    font-size:16px; line-height:1.75; font-feature-settings:'tnum' 1; letter-spacing:-0.011em;
+  }
+  .wrap{ max-width:600px; margin:0 auto; padding:40px 22px 72px; }
+
+  .mark{ display:inline-flex; align-items:baseline; gap:7px; font-weight:800; font-size:14px; letter-spacing:0.02em; color:var(--blue); }
+  .mark span{ color:var(--ink-faint); font-weight:500; letter-spacing:-0.01em; }
+  h1{ margin:18px 0 10px; font-size:clamp(27px,6.8vw,36px); font-weight:800; line-height:1.36; letter-spacing:-0.028em; }
+  .intro p{ margin:0 0 17px; font-size:15.5px; line-height:1.85; }
+  .intro p:last-child{ margin-bottom:0; }
+  .intro .me{ color:var(--ink); }
+  .intro .lede{ color:var(--ink-soft); }
+  .grad{ display:block; width:100%; height:15px; margin:26px 0 34px; }
+
+  .step{ border-top:1px solid var(--rule); padding:22px 0 26px; }
+  .step[data-state="locked"]{ opacity:.32; pointer-events:none; }
+  .step[data-state="locked"] .body, .step[data-state="done"] .body{ display:none; }
+  .step[data-state="done"] .recap{ display:block; }
+  .recap{ display:none; margin-left:34px; font-size:14.5px; color:var(--ink-soft); }
+  .recap b{ color:var(--ink); font-weight:700; }
+
+  .head{ display:flex; align-items:baseline; gap:11px; margin-bottom:4px; }
+  .num{ flex:none; width:23px; height:23px; border-radius:50%; border:1px solid var(--rule); color:var(--ink-faint);
+        font-size:12px; font-weight:700; line-height:21px; text-align:center; transform:translateY(3px); }
+  .step[data-state="active"] .num{ background:var(--ink); border-color:var(--ink); color:#fff; }
+  .step[data-state="done"] .num{ background:var(--blue-tint); border-color:var(--blue-line); color:var(--blue-deep); }
+  h2{ margin:0; font-size:18px; font-weight:700; letter-spacing:-0.02em; }
+  .hint{ margin:2px 0 18px 34px; color:var(--ink-faint); font-size:13.5px; }
+  .body{ margin-left:34px; }
+
+  .field{ margin-bottom:17px; }
+  label{ display:block; font-size:13.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
+  input[type=number], input[type=email], select{
+    width:100%; padding:11px 13px; font:inherit; font-size:16px; line-height:1.5; color:var(--ink);
+    background:var(--panel); border:1px solid var(--rule); border-radius:var(--radius); appearance:none;
+  }
+  input[type=number]{ font-variant-numeric:tabular-nums; }
+  select{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='11' height='7'><path d='M1 1l4.5 4.5L10 1' fill='none' stroke='%235A6284' stroke-width='1.6'/></svg>");
+    background-repeat:no-repeat; background-position:right 13px center; padding-right:36px;
+  }
+  optgroup{ font-size:13px; color:var(--ink-faint); }
+  option{ font-size:15px; color:var(--ink); }
+  input:focus-visible, select:focus-visible, button:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
+  .row{ display:flex; gap:12px; } .row .field{ flex:1; }
+  .unit{ position:relative; } .unit input{ padding-right:76px; }
+  .unit em{ position:absolute; right:13px; top:50%; transform:translateY(-50%); font-style:normal; font-size:13.5px; color:var(--ink-faint); pointer-events:none; }
+  .unit.short input{ padding-right:42px; }
+
+  .seg{ display:flex; gap:8px; }
+  .seg button{ flex:1; padding:11px 8px; font:inherit; font-size:15px; line-height:1.5; font-weight:600; color:var(--ink-soft);
+               background:var(--panel); border:1px solid var(--rule); border-radius:var(--radius); cursor:pointer; }
+  .seg button[aria-pressed="true"]{ background:var(--blue); border-color:var(--blue); color:#fff; }
+
+  .go{ margin-top:22px; width:100%; padding:14px; font:inherit; font-size:16px; line-height:1.5; font-weight:700; letter-spacing:-0.02em;
+       color:#fff; background:var(--ink); border:none; border-radius:var(--radius); cursor:pointer; }
+  .go.ghost{ background:transparent; color:var(--ink-soft); border:1px solid var(--rule); }
+  .err{ margin:10px 0 0; font-size:13.5px; color:var(--warn); } .err:empty{ margin:0; }
+
+  .calc{ background:var(--panel); border:1px solid var(--rule); border-radius:var(--radius); padding:18px 18px 16px; }
+  .formula{ font-size:15px; color:var(--ink-soft); font-variant-numeric:tabular-nums; line-height:2.05; }
+  .formula .v{ color:var(--ink); font-weight:700; }
+  .out{ margin-top:14px; padding-top:14px; border-top:1px solid var(--rule); }
+  .out .lab{ display:block; font-size:12.5px; color:var(--ink-faint); margin-bottom:3px; }
+  .out .n{ font-size:38px; font-weight:800; letter-spacing:-0.04em; font-variant-numeric:tabular-nums; line-height:1; }
+  .out .u{ font-size:15px; font-weight:600; color:var(--ink-soft); margin-left:7px; }
+  .out .n.hero{ font-size:54px; color:var(--blue); }
+
+  .note{ margin:14px 0 0; font-size:13.5px; color:var(--ink-soft); }
+  .flag{ margin-top:16px; padding:12px 14px; background:var(--warn-soft); border-left:2px solid var(--warn);
+         font-size:13.5px; color:var(--warn); border-radius:0 var(--radius) var(--radius) 0; }
+  .info{ margin-top:16px; padding:14px 16px; background:var(--blue-tint); border-left:2px solid var(--blue);
+         font-size:13.5px; color:var(--blue-deep); border-radius:0 var(--radius) var(--radius) 0; line-height:1.85; }
+  .info b{ color:var(--blue-deep); }
+
+  .facts{ margin:20px 0 0; padding:0; list-style:none; }
+  .facts li{ display:flex; justify-content:space-between; gap:14px; padding:12px 0; border-bottom:1px solid var(--rule); font-size:14.5px; }
+  .facts li:first-child{ border-top:1px solid var(--rule); }
+  .facts .k{ color:var(--ink-soft); }
+  .facts .v{ font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
+
+  h4.sec{ margin:30px 0 4px; font-size:15.5px; font-weight:800; letter-spacing:-0.025em; }
+  p.seclede{ margin:0 0 12px; font-size:13.5px; color:var(--ink-faint); }
+
+  .cps{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
+  .cps th{ font-size:12.5px; font-weight:600; color:var(--ink-faint); text-align:left; padding:7px 6px; border-bottom:1px solid var(--rule); }
+  .cps td{ padding:12px 6px; border-bottom:1px solid var(--rule); }
+  .cps th.n, .cps td.n{ text-align:right; }
+  .cps tr.fin td{ background:var(--blue-tint); font-weight:700; }
+  .cps tr.fin td:first-child{ box-shadow:inset 2px 0 0 var(--blue); }
+  .cps .tag{ display:block; font-size:11.5px; font-weight:600; color:var(--ink-faint); }
+
+  .rule{ margin:0; padding:0; list-style:none; }
+  .rule li{ display:flex; gap:11px; padding:13px 0; border-bottom:1px solid var(--rule); font-size:14.5px; line-height:1.75; }
+  .rule li:first-child{ border-top:1px solid var(--rule); }
+  .rule .w{ flex:none; width:74px; font-weight:700; color:var(--blue-deep); font-size:13px; padding-top:1px; }
+
+  .track{ margin:22px 0 4px; }
+
+  .cta{ margin-top:30px; padding:24px 22px; background:var(--blue); border-radius:var(--radius); color:#fff; }
+  .cta h3{ margin:0 0 6px; font-size:17px; font-weight:800; letter-spacing:-0.025em; }
+  .cta p{ margin:0 0 18px; font-size:14.5px; color:#DDE4FF; }
+  .cta label{ color:#DDE4FF; }
+  .cta input[type=email]{ border-color:#8A9FFF; }
+  .cta .consent{ display:flex; gap:9px; align-items:flex-start; margin:16px 0 4px; font-size:13px; line-height:1.7; color:#DDE4FF; }
+  .cta .consent input{ flex:none; width:17px; height:17px; margin-top:2px; accent-color:#fff; }
+  .cta button{ margin-top:16px; width:100%; padding:13px; font:inherit; font-size:15.5px; line-height:1.5; font-weight:700;
+               color:var(--blue-deep); background:#fff; border:none; border-radius:var(--radius); cursor:pointer; }
+  .cta button:disabled{ opacity:.55; cursor:not-allowed; }
+  .cta .err{ color:#FFD9CF; }
+  .cta details{ margin-top:12px; font-size:12.5px; color:#C8D3FF; }
+  .cta summary{ cursor:pointer; }
+  .cta details p{ margin:8px 0 0; font-size:12.5px; color:#C8D3FF; line-height:1.8; }
+  .cta .privacy{ margin:10px 0 0; font-size:12.5px; line-height:1.8; }
+  .cta .privacy div{ display:flex; gap:12px; padding:9px 0; border-top:1px solid rgba(255,255,255,.24); }
+  .cta .privacy dt{ flex:none; width:62px; font-weight:700; color:#fff; }
+  .cta .privacy dd{ margin:0; color:#C8D3FF; }
+  .cta .privacy a{ color:#fff; }
+
+  footer{ margin-top:52px; border-top:1px solid var(--rule); padding-top:22px; }
+  footer p{ margin:0 0 12px; font-size:12.5px; line-height:1.85; color:var(--ink-faint); }
+  footer a{ color:var(--ink-soft); }
+
+  @media (prefers-reduced-motion:no-preference){
+    .step[data-state="active"] .body{ animation:in .34s ease-out; }
+    @keyframes in{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="mark">ZEYO <span>체중관리 계산기</span></div>
+  <h1>반려동물 하루 목표 칼로리</h1>
+  <div class="intro">
+    <p class="me">안녕하세요. 4살 고양이 토리와 함께 사는 소이라고 합니다. 저는 지금 토리를 다이어트 시키면서 직접 겪었던 어려움과 시행착오를 통해, 반려동물 다이어트 앱을 개발 중에 있습니다.</p>
+    <p class="lede">본 페이지는 앱의 기능을 미리 체험해볼 수 있도록 구성했습니다. 목표 체중을 넣으면 3단계로 하루 목표 열량을 계산합니다. 미국동물병원협회(AAHA) 2021 영양·체중관리 가이드라인 계산식을 씁니다.</p>
+  </div>
+
+  <svg class="grad" viewBox="0 0 600 15" preserveAspectRatio="none" aria-hidden="true">
+    <line x1="0" y1="14" x2="600" y2="14" stroke="#DDE2F2" stroke-width="1"/>
+    <g id="gradticks" stroke="#5F7DFF" stroke-width="1"></g>
+  </svg>
+
+  <!-- 1단계 -->
+  <section class="step" id="s1" data-state="active">
+    <div class="head"><div class="num">1</div><h2>목표 체중 정하기</h2></div>
+    <p class="hint">모든 계산은 지금 체중이 아니라 <b>목표 체중</b>을 기준으로 합니다.</p>
+    <div class="body">
+      <div class="field">
+        <label id="lb-sp">어떤 아이인가요</label>
+        <div class="seg" role="group" aria-labelledby="lb-sp">
+          <button type="button" data-sp="cat" aria-pressed="true">고양이</button>
+          <button type="button" data-sp="dog" aria-pressed="false">강아지</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="cur">현재 체중</label>
+          <div class="unit short"><input type="number" id="cur" inputmode="decimal" step="0.1" min="0.3" max="120" placeholder="5.8"><em>kg</em></div>
+        </div>
+        <div class="field">
+          <label for="tgt">목표 체중</label>
+          <div class="unit short"><input type="number" id="tgt" inputmode="decimal" step="0.1" min="0.3" max="120" placeholder="4.5"><em>kg</em></div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="neu">중성화</label>
+        <select id="neu"><option value="1">했어요</option><option value="0">안 했어요</option></select>
+      </div>
+      <p class="err" id="e1"></p>
+      <button class="go" id="b1">목표 체중으로 계산하기</button>
+    </div>
+    <p class="recap" id="r1"></p>
+  </section>
+
+  <!-- 2단계 -->
+  <section class="step" id="s2" data-state="locked">
+    <div class="head"><div class="num">2</div><h2>휴식기 에너지 요구량 (RER)</h2></div>
+    <p class="hint">하루 종일 가만히 있어도 쓰는 최소 열량입니다. 모든 급여량의 출발점이에요.</p>
+    <div class="body">
+      <div class="calc">
+        <div class="formula">
+          RER = 70 × (목표 체중 kg)<sup>0.75</sup><br>
+          RER = 70 × (<span class="v" id="f-tgt">–</span>)<sup>0.75</sup> = 70 × <span class="v" id="f-pow">–</span>
+        </div>
+        <div class="out"><span class="n" id="f-rer">–</span><span class="u">kcal / 하루</span></div>
+      </div>
+      <p class="note">체중이 두 배가 되어도 필요 열량은 두 배가 되지 않습니다. 지수 0.75를 쓰는 이유이고, 이 식은 체중과 관계없이 적용됩니다.</p>
+      <button class="go" id="b2">계수 적용하기</button>
+    </div>
+    <p class="recap" id="r2"></p>
+  </section>
+
+  <!-- 3단계 -->
+  <section class="step" id="s3" data-state="locked">
+    <div class="head"><div class="num">3</div><h2>하루 목표 칼로리</h2></div>
+    <p class="hint" id="h3">RER에 상태별 계수를 곱합니다.</p>
+    <div class="body">
+      <div class="field">
+        <label for="fac">적용 계수</label>
+        <select id="fac"></select>
+        <p class="note" id="fac-note" style="margin-top:8px"></p>
+      </div>
+
+      <div class="calc">
+        <div class="formula">
+          하루 목표 = RER × 계수<br>
+          하루 목표 = <span class="v" id="g-rer">–</span> × <span class="v" id="g-fac">–</span>
+        </div>
+        <div class="out">
+          <span class="lab" id="g-lab">시작 급여량</span>
+          <span class="n hero" id="g-out">–</span><span class="u">kcal / 하루</span>
+        </div>
+      </div>
+
+      <div id="g-start"></div>
+      <div id="g-flag"></div>
+
+      <div class="field" style="margin-top:22px">
+        <label for="kcalkg">사료 열량을 알면 그램으로 바꿔 드려요 (선택)</label>
+        <div class="unit"><input type="number" id="kcalkg" inputmode="decimal" step="10" min="500" max="8000" placeholder="3800"><em>kcal/kg</em></div>
+      </div>
+      <p class="note" id="g-gram" style="margin-top:-4px"></p>
+
+      <div id="g-adjust"></div>
+      <div id="g-cp"></div>
+      <div id="g-partial"></div>
+
+      <div class="track" id="g-track"></div>
+      <ul class="facts" id="g-facts"></ul>
+
+      <div class="cta" id="cta">
+        <h3>2주마다 계산하고 조정하는 건 앱이 대신할게요</h3>
+        <p>체중 곡선, 감량 속도 미달 알림, 열량 재조정 시점까지 자동으로. 지금 만들고 있습니다. 출시 소식과 이후 업데이트를 메일로 보내드릴게요.</p>
+        <div id="cta-form">
+          <div class="field" style="margin-bottom:0">
+            <label for="email">이메일</label>
+            <input type="email" id="email" inputmode="email" autocomplete="email" placeholder="name@example.com">
+          </div>
+          <label class="consent" for="agree">
+            <input type="checkbox" id="agree">
+            <span>이메일 주소 수집·이용과 앱 소식 수신에 동의합니다.</span>
+          </label>
+          <details>
+            <summary>개인정보 수집·이용 안내</summary>
+            <dl class="privacy">
+              <div><dt>수집 항목</dt><dd>이메일 주소</dd></div>
+              <div><dt>이용 목적</dt><dd>ZEYO 앱 출시 알림, 업데이트 및 서비스 소식 안내 (광고성 정보 수신 동의 포함)</dd></div>
+              <div><dt>보유 기간</dt><dd>수신 동의를 철회하시거나 삭제를 요청하실 때까지 보유하고, 요청하시면 지체 없이 파기합니다. 서비스를 종료하는 경우에도 파기합니다.</dd></div>
+              <div><dt>동의 거부</dt><dd>동의하지 않으셔도 됩니다. 계산기 이용에는 아무 제한이 없고, 앱 소식만 받지 못합니다.</dd></div>
+              <div><dt>수신 거부</dt><dd>보내드리는 모든 메일에 수신 거부 방법을 넣습니다. 아래 주소로 알려주셔도 됩니다.</dd></div>
+              <div><dt>문의·삭제</dt><dd>소이 · <a href="mailto:soi_creativelife@naver.com">soi_creativelife@naver.com</a></dd></div>
+            </dl>
+          </details>
+          <p class="err" id="e-cta"></p>
+          <button id="b-cta">신청하기</button>
+        </div>
+        <p id="cta-done" style="display:none;margin:0"></p>
+      </div>
+
+      <button class="go ghost" id="b3" style="margin-top:14px">다시 계산</button>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>계산식</b> — RER = 70 × (목표체중kg)<sup>0.75</sup>, 하루 목표 = RER × 생애단계 계수. 감량 계수는 고양이 0.8, 강아지 1.0. 열량은 처음부터 끝까지 <b>최종 목표 체중</b>을 기준으로 계산합니다. 출처: AAHA, <a href="https://www.aaha.org/resources/2021-aaha-nutrition-and-weight-management-guidelines/weight-reduction-in-the-obese-pet/" target="_blank" rel="noopener">2021 Nutrition and Weight Management Guidelines, Box 1</a>.</p>
+    <p><b>감량 속도와 정체</b> — 강아지 주당 1–2%, 고양이 주당 0.5–2%. 감량이 길어질수록 속도가 느려지는 것은 정상이며, 열량을 계속 줄여야 유지됩니다(초기 주당 1.2% → 672일차 0.1%). 출처: <a href="https://livrepository.liverpool.ac.uk/3001233/" target="_blank" rel="noopener">German, Proc Nutr Soc 2016</a>, <a href="https://vetnutrition.tufts.edu/2018/10/how-fast-is-too-fast-for-my-pet-to-lose-weight/" target="_blank" rel="noopener">Tufts Petfoodology</a>.</p>
+    <p><b>실제 급여량 참고치</b> — 리버풀대 감량 클리닉 실측 평균: 고양이 53 kcal/이상체중kg<sup>0.67</sup>(범위 43–66), 강아지 61 kcal/이상체중kg<sup>0.75</sup>(범위 44–74). 출처: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10318927/" target="_blank" rel="noopener">German et al., Front Vet Sci 2023</a>, <a href="https://bmcvetres.biomedcentral.com/articles/10.1186/s12917-015-0570-y" target="_blank" rel="noopener">German et al., BMC Vet Res 2015</a>.</p>
+    <p><b>부분 감량</b> — 목표를 이상 체중보다 높게 잡는 방식. 고령이거나 비만이 심한 고양이에서 오히려 감량 속도가 빠르고(주 0.81% vs 0.61%) 병원 방문 횟수가 적었으며 근육량이 더 보존됐습니다. 출처: German et al., Front Vet Sci 2023.</p>
+    <p>이 계산기는 일반적인 영양 정보를 제공하는 참고 도구이며 진료나 처방을 대신하지 않습니다. 질병이 있거나 감량 폭이 큰 경우, 계획을 시작하기 전에 수의사와 상의하세요.</p>
+    <p><b>문의</b> — 소이 · <a href="mailto:soi_creativelife@naver.com">soi_creativelife@naver.com</a>. 수신 거부나 이메일 삭제를 원하시면 이 주소로 알려주세요. 바로 처리해 드립니다.</p>
+  </footer>
+
+</div>
+
+<script>
+/* ═══ 0. 설정 ═══ */
+const CONFIG = {
+  SITE_ID: 'zeyo-calc',
+  SUPABASE_URL: 'https://knvlahkcnkvmjsupmach.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtudmxhaGtjbmt2bWpzdXBtYWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDgwMzUsImV4cCI6MjEwNDU4NDAzNX0.RchX5ND7VywTnzZ7tVGtt-k00b8659BjaMgTGHbadpM',
+};
+
+/* ═══ 1. 수집 ═══ */
+const Store = (() => {
+  const on = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY);
+  const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+  const ls = { get(k){ try{ return localStorage.getItem(k);}catch(e){ return null; } },
+               set(k,v){ try{ localStorage.setItem(k,v);}catch(e){} } };
+  let vid = ls.get('zeyo:vid'); if(!vid){ vid = uid(); ls.set('zeyo:vid', vid); }
+  let sid; try{ sid = sessionStorage.getItem('zeyo:sid') || uid(); sessionStorage.setItem('zeyo:sid', sid); }catch(e){ sid = uid(); }
+  const headers = x => Object.assign({
+    'apikey': CONFIG.SUPABASE_ANON_KEY,
+    'Authorization': 'Bearer ' + CONFIG.SUPABASE_ANON_KEY,
+    'Content-Type': 'application/json' }, x);
+  async function track(name, props = {}){
+    if(!on){ console.debug('[track]', name, props); return; }
+    try{
+      await fetch(CONFIG.SUPABASE_URL + '/rest/v1/events', {
+        method:'POST', keepalive:true, headers: headers({'Prefer':'return=minimal'}),
+        body: JSON.stringify({ site: CONFIG.SITE_ID, visitor_id: vid, session_id: sid, name, props }) });
+    }catch(e){}
+  }
+  async function signup(email, props = {}){
+    if(!on){ console.debug('[signup]', email, props); return 'ok'; }
+    const res = await fetch(CONFIG.SUPABASE_URL + '/rest/v1/signups?on_conflict=email', {
+      method:'POST', headers: headers({'Prefer':'resolution=ignore-duplicates,return=minimal'}),
+      body: JSON.stringify({ email, source: CONFIG.SITE_ID, props }) });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    return 'ok';
+  }
+  return { track, signup };
+})();
+const track = (n,p) => Store.track(n,p);
+
+/* ═══ 2. 계산 로직 ═══════════════════════════════════════
+   원칙: 열량은 처음부터 끝까지 최종 목표(이상) 체중 기준.
+   감량이 길어질수록 대사 적응으로 속도가 느려지므로, 열량은
+   중간에 올리는 게 아니라 필요하면 더 내린다.
+   ═══════════════════════════════════════════════════════ */
+const rerOf = kg => 70 * Math.pow(kg, 0.75);
+
+// 리버풀대 감량 클리닉 실측 평균 급여량 (이상 체중 기준)
+const realIntake = {
+  cat: { f: kg => 53 * Math.pow(kg, 0.67), lo: kg => 43 * Math.pow(kg,0.67), hi: kg => 66 * Math.pow(kg,0.67) },
+  dog: { f: kg => 61 * Math.pow(kg, 0.75), lo: kg => 44 * Math.pow(kg,0.75), hi: kg => 74 * Math.pow(kg,0.75) },
+};
+
+const FLOOR_K   = 0.60;  // RER(목표체중) 대비 하한
+const ADJ_STEP  = 0.10;  // 정체 시 조정 폭
+const PARTIAL_TRIGGER = 0.20;
+const PARTIAL_MARGIN  = 1.15; // German 2023: 부분 감량 목표는 이상 체중보다 중앙값 18% 높았음
+
+const FACTORS = {
+  cat: {
+    loss: 0.8, lossRate: [0.005, 0.02], aim: 0.01, aimLabel: '주당 약 1%',
+    lossRateLabel: '주당 0.5–2%',
+    groups: [
+      { label:'체중 감량', opts:[ { v:0.8, t:'감량 중 · 0.8' } ]},
+      { label:'체중 유지 — 중성화함', opts:[
+        { v:1.0, t:'거의 안 움직임 · 비만 경향 · 1.0' },
+        { v:1.2, t:'보통 · 1.2' },
+        { v:1.4, t:'활동적 · 1.4' } ]},
+      { label:'체중 유지 — 중성화 안 함', opts:[
+        { v:1.4, t:'보통 · 1.4' }, { v:1.6, t:'활동적 · 1.6' } ]},
+      { label:'성장·임신·수유', opts:[
+        { v:2.5, t:'성장기 자묘 · 2.5', x:1 },
+        { v:1.8, t:'임신 · 1.6–2.0 중 1.8', x:1 },
+        { v:3.0, t:'수유 · 2.0–6.0 중 3.0', x:1 } ]},
+    ],
+  },
+  dog: {
+    loss: 1.0, lossRate: [0.01, 0.02], aim: 0.015, aimLabel: '주당 약 1.5%',
+    lossRateLabel: '주당 1–2%',
+    groups: [
+      { label:'체중 감량', opts:[ { v:1.0, t:'감량 중 · 1.0' } ]},
+      { label:'체중 유지 — 중성화함', opts:[
+        { v:1.2, t:'거의 안 움직임 · 비만 경향 · 1.2' },
+        { v:1.4, t:'보통 · 1.4' }, { v:1.6, t:'활동적 · 1.6' } ]},
+      { label:'체중 유지 — 중성화 안 함', opts:[
+        { v:1.6, t:'보통 · 1.6' }, { v:1.8, t:'활동적 · 1.8' } ]},
+      { label:'활동량이 많은 경우', opts:[
+        { v:1.8, t:'가벼운 운동 · 1.6–2.0 중 1.8' },
+        { v:3.0, t:'중강도 활동 · 2.0–5.0 중 3.0' },
+        { v:6.0, t:'고강도 활동 · 5.0–11.0 중 6.0' } ]},
+      { label:'성장·임신·수유', opts:[
+        { v:3.0, t:'생후 4개월 미만 · 3.0', x:1 },
+        { v:2.0, t:'생후 4개월 이상 · 2.0', x:1 },
+        { v:3.0, t:'임신 마지막 21일 · 3.0', x:1 },
+        { v:4.0, t:'수유 · 3.0 이상 중 4.0', x:1 } ]},
+    ],
+  },
+};
+
+const state = { sp:'cat', cur:0, tgt:0, neu:true, mode:'loss', rer:0, fac:0, special:false };
+
+const $ = id => document.getElementById(id);
+const round = (n,d=0) => Number(n.toFixed(d));
+const fmt = n => n.toLocaleString('ko-KR');
+const weeksFor = (kg, from, rate) => {
+  const lo = Math.ceil(kg / (from * rate[1])), hi = Math.ceil(kg / (from * rate[0]));
+  return lo === hi ? lo + '주' : lo + '–' + hi + '주';
+};
+
+// 재평가 체크포인트: 시작 체중의 5%씩. 열량이 아니라 "여기서 다시 본다"는 지점.
+function checkpoints(cur, tgt){
+  const total = cur - tgt, out = [];
+  for (let p = 0.05; out.length < 7; p += 0.05){
+    const lost = cur * p;
+    if (lost >= total - cur * 0.02) break;
+    out.push({ pct: Math.round(p*100), w: round(cur * (1-p), 2), lost: round(lost, 2) });
+  }
+  out.push({ pct: round(total/cur*100, 1), w: tgt, lost: round(total, 2), fin: true });
+  return out;
+}
+
+/* ═══ 3. UI ═══ */
+(() => { let s=''; for(let i=0;i<=60;i++){ const x=i*10,h=i%5===0?9:4;
+  s += '<line x1="'+x+'" y1="'+(14-h)+'" x2="'+x+'" y2="14"/>'; } $('gradticks').innerHTML=s; })();
+
+const setStep = (id, st) => { $(id).dataset.state = st; };
+
+document.querySelectorAll('[data-sp]').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('[data-sp]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  state.sp = btn.dataset.sp;
+}));
+
+$('b1').addEventListener('click', () => {
+  const cur = parseFloat($('cur').value), tgt = parseFloat($('tgt').value), err = $('e1');
+  err.textContent = '';
+  if(!(cur>0)||!(tgt>0)){ err.textContent='현재 체중과 목표 체중을 모두 입력해 주세요.'; return; }
+  if(cur>120||tgt>120){ err.textContent='체중은 120kg 이하로 입력해 주세요.'; return; }
+  if(tgt>cur*1.5){ err.textContent='목표 체중이 현재보다 지나치게 높습니다. 다시 확인해 주세요.'; return; }
+  if(tgt<cur*0.5){ err.textContent='목표 체중이 현재의 절반 미만입니다. 이런 감량은 수의사 감독이 반드시 필요합니다.'; return; }
+
+  state.cur=cur; state.tgt=tgt;
+  state.neu = $('neu').value==='1';
+  state.mode = tgt < cur-0.05 ? 'loss' : 'maintain';
+  state.rer = rerOf(tgt);
+
+  $('r1').innerHTML = (state.sp==='cat'?'고양이':'강아지') + ' · 현재 <b>'+cur+'kg</b> → 목표 <b>'+tgt+'kg</b> · 중성화 ' + (state.neu?'함':'안 함');
+  $('f-tgt').textContent = tgt;
+  $('f-pow').textContent = round(Math.pow(tgt,0.75), 2);
+  $('f-rer').textContent = fmt(round(state.rer));
+
+  setStep('s1','done'); setStep('s2','active');
+  $('s2').scrollIntoView({behavior:'smooth', block:'center'});
+  track('step1_done', { species:state.sp, mode:state.mode, cur_kg:cur, tgt_kg:tgt,
+    loss_pct: round((cur-tgt)/cur*100, 1), neutered: state.neu });
+  track('click_calc');
+});
+
+$('b2').addEventListener('click', () => {
+  const t = FACTORS[state.sp];
+  const def = state.mode === 'loss' ? t.loss
+    : (state.neu ? (state.sp==='cat'?1.2:1.4) : (state.sp==='cat'?1.4:1.6));
+  $('fac').innerHTML = t.groups.map(g =>
+    '<optgroup label="'+g.label+'">' + g.opts.map(o =>
+      '<option value="'+o.v+'" data-x="'+(o.x||0)+'"'+(o.v===def&&!o.x?' selected':'')+'>'+o.t+'</option>'
+    ).join('') + '</optgroup>').join('');
+  $('fac').value = String(def);
+  state.fac = def; state.special = false;
+
+  $('h3').innerHTML = state.mode==='loss'
+    ? 'RER에 감량 계수를 곱합니다. 이건 <b>출발점</b>이지 고정값이 아니에요.'
+    : 'RER에 유지 계수를 곱합니다. 체중 변화를 보며 조정하세요.';
+  $('r2').innerHTML = 'RER = <b>'+fmt(round(state.rer))+' kcal</b> (목표 '+state.tgt+'kg 기준)';
+  $('g-rer').textContent = fmt(round(state.rer));
+
+  setStep('s2','done'); setStep('s3','active');
+  render3();
+  $('s3').scrollIntoView({behavior:'smooth', block:'start'});
+  track('step2_done', { species:state.sp, rer: round(state.rer) });
+});
+
+$('fac').addEventListener('change', e => {
+  state.fac = parseFloat(e.target.value);
+  state.special = e.target.selectedOptions[0].dataset.x === '1';
+  render3();
+  track('click_factor_change', { factor: state.fac });
+});
+$('kcalkg').addEventListener('input', renderGram);
+
+function render3(){
+  const t = FACTORS[state.sp], loss = state.mode === 'loss';
+  const kcal = state.rer * state.fac;
+  const floor = state.rer * FLOOR_K;
+
+  $('g-fac').textContent = state.fac;
+  $('g-out').textContent = fmt(round(kcal));
+  $('g-lab').textContent = loss ? '시작 급여량 — 반응을 보며 조정합니다' : '하루 목표 칼로리';
+  $('fac-note').innerHTML = state.special
+    ? '성장기·임신·수유 중에는 체중을 줄이지 않습니다. 이 계수는 열량을 늘리는 쪽이라 감량 계획과 함께 쓸 수 없어요.'
+    : '';
+
+  // 시작값의 성격 + 실측 참고치
+  if (loss && !state.special){
+    const R = realIntake[state.sp];
+    const mid = R.f(state.tgt), lo = R.lo(state.tgt), hi = R.hi(state.tgt);
+    $('g-start').innerHTML =
+      '<div class="info"><b>이 숫자는 출발점입니다.</b> 가이드라인 계수는 시작값이고, 실제로는 대부분 여기서 더 내려갑니다. '
+      + '리버풀대 감량 클리닉에서 프로그램을 마친 ' + (state.sp==='cat'?'고양이':'강아지')
+      + '들이 실제로 먹은 평균은 목표 ' + state.tgt + 'kg 기준 <b>하루 약 ' + fmt(round(mid)) + ' kcal</b>'
+      + ' (개체별 ' + fmt(round(lo)) + '–' + fmt(round(hi)) + ' kcal)이었습니다. '
+      + '시작값 ' + fmt(round(kcal)) + ' kcal에서 줄지 않는다고 실패한 게 아니라, 줄여가는 과정이 정상입니다.</div>';
+  } else {
+    $('g-start').innerHTML = '';
+  }
+
+  // 경고
+  const flags = [];
+  if (loss){
+    if ((state.cur-state.tgt)/state.cur > 0.3)
+      flags.push('줄여야 할 체중이 현재의 30%를 넘습니다. 이 정도 감량은 수의사 감독 아래, 처방 감량식으로 진행하세요.');
+    if (state.sp === 'cat')
+      flags.push('고양이가 이틀 이상 사료를 거의 먹지 않으면 감량을 멈추고 병원에 연락하세요. 먹지 않아 생기는 급격한 체중 감소는 지방간 위험을 높입니다.');
+  }
+  $('g-flag').innerHTML = flags.length ? '<div class="flag">'+flags.join('<br><br>')+'</div>' : '';
+
+  // 조정 프로토콜
+  if (loss && !state.special){
+    const wk = state.cur * t.aim;
+    $('g-adjust').innerHTML =
+      '<h4 class="sec">2주마다 이렇게 조정하세요</h4>'
+      + '<p class="seclede">감량이 진행될수록 대사가 적응해 같은 열량으로는 체중이 멈춥니다. 열량을 <b>더 줄여야</b> 유지됩니다.</p>'
+      + '<ul class="rule">'
+      + '<li><span class="w">목표 속도</span><span>' + t.aimLabel + ' · 2주에 약 ' + round(wk*2,2) + 'kg. 같은 저울로, 같은 시간에 재세요.</span></li>'
+      + '<li><span class="w">느리면</span><span>2회 연속(약 4주) 목표에 못 미치면 하루 열량을 <b>10% 줄입니다</b> → ' + fmt(round(kcal*0.9)) + ' kcal. 그다음도 느리면 또 10%.</span></li>'
+      + '<li><span class="w">빠르면</span><span>' + t.lossRateLabel.replace('주당 ','주당 ') + '의 상한을 넘으면 10% 늘립니다 → ' + fmt(round(kcal*1.1)) + ' kcal.</span></li>'
+      + '<li><span class="w">하한선</span><span><b>' + fmt(round(floor)) + ' kcal</b> (목표 체중 RER의 60%). 여기까지 내렸는데도 멈춰 있으면 더 줄이지 말고 수의사에게 가세요. 일반 사료를 더 줄이면 단백질·미량영양소가 부족해집니다.</span></li>'
+      + '<li><span class="w">간식</span><span>하루 총열량의 10% 이내. 계량컵 말고 주방 저울로 재세요.</span></li>'
+      + '</ul>';
+  } else { $('g-adjust').innerHTML = ''; }
+
+  // 재평가 체크포인트
+  if (loss && !state.special && (state.cur - state.tgt) / state.cur > 0.08){
+    const cps = checkpoints(state.cur, state.tgt);
+    const rows = cps.map(c =>
+      '<tr'+(c.fin?' class="fin"':'')+'>'
+      + '<td>' + c.pct + '% 감량' + (c.pct >= 6 && c.pct < 12 ? '<span class="tag">여기서부터 몸이 편해집니다</span>' : (c.fin?'<span class="tag">최종 목표</span>':'')) + '</td>'
+      + '<td class="n">' + c.w + ' kg</td>'
+      + '<td class="n">' + weeksFor(c.lost, state.cur, t.lossRate) + '</td></tr>').join('');
+    $('g-cp').innerHTML =
+      '<h4 class="sec">재평가 지점</h4>'
+      + '<p class="seclede">열량은 최종 목표 기준으로 고정입니다. 아래는 <b>중간 목표</b>가 아니라, 체중과 몸 상태를 다시 보는 지점이에요. 6% 정도만 빠져도 관절 부담과 활력에서 측정 가능한 변화가 나타납니다.</p>'
+      + '<table class="cps"><thead><tr><th>지점</th><th class="n">체중</th><th class="n">도달 예상</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  } else { $('g-cp').innerHTML = ''; }
+
+  // 부분 감량 제안
+  const lossPct = (state.cur - state.tgt) / state.cur;
+  if (loss && !state.special && lossPct > PARTIAL_TRIGGER){
+    const pt = round(Math.min(state.tgt * PARTIAL_MARGIN, state.cur * 0.95), 1);
+    $('g-partial').innerHTML =
+      '<h4 class="sec">완주가 부담되면 — 부분 감량</h4>'
+      + '<div class="info">감량 폭이 <b>' + round(lossPct*100,1) + '%</b>로 큽니다. 이런 경우 목표를 이상 체중보다 조금 높게 잡고 <b>거기서 끝내는</b> 방법이 있습니다. '
+      + '이 아이라면 <b>' + pt + 'kg</b> 정도입니다.<br><br>'
+      + '고령이거나 비만이 심한 고양이를 대상으로 한 연구에서, 부분 감량 쪽이 오히려 주당 감량 속도가 빨랐고(0.81% vs 0.61%) 병원 방문 횟수가 적었으며 근육량이 더 보존됐습니다. '
+      + '중요한 건 <b>하루 열량은 그대로 ' + fmt(round(kcal)) + ' kcal</b>이라는 점입니다. 먹는 양을 늘리는 게 아니라 결승선을 앞당기는 것이고, 그래서 효과가 있습니다.</div>';
+    track('partial_shown', { species: state.sp, loss_pct: round(lossPct*100,1) });
+  } else { $('g-partial').innerHTML = ''; }
+
+  // 체중 눈금
+  const lo2 = Math.min(state.cur,state.tgt), hi2 = Math.max(state.cur,state.tgt);
+  const pad = Math.max((hi2-lo2)*0.45, hi2*0.06), a = lo2-pad, b = hi2+pad;
+  const px = v => 8 + ((v-a)/(b-a))*584;
+  let ticks='';
+  for(let i=0;i<=24;i++){ const x=8+(i/24)*584;
+    ticks += '<line x1="'+x.toFixed(1)+'" y1="'+(i%6===0?26:31)+'" x2="'+x.toFixed(1)+'" y2="36" stroke="#DDE2F2" stroke-width="1"/>'; }
+  const xC=px(state.cur), xT=px(state.tgt), anch = x => x>520?'end':(x<60?'start':'middle');
+  $('g-track').innerHTML =
+    '<svg viewBox="0 0 600 62" width="100%" height="62" role="img" aria-label="현재 '+state.cur+'kg에서 목표 '+state.tgt+'kg까지">'
+    + ticks
+    + '<line x1="'+Math.min(xC,xT)+'" y1="36" x2="'+Math.max(xC,xT)+'" y2="36" stroke="#5F7DFF" stroke-width="2"/>'
+    + '<circle cx="'+xC+'" cy="36" r="4.5" fill="#1A2038"/>'
+    + '<circle cx="'+xT+'" cy="36" r="4.5" fill="#5F7DFF"/>'
+    + '<text x="'+xC+'" y="20" text-anchor="'+anch(xC)+'" font-size="12.5" font-weight="700" fill="#1A2038">현재 '+state.cur+'kg</text>'
+    + '<text x="'+xT+'" y="55" text-anchor="'+anch(xT)+'" font-size="12.5" font-weight="700" fill="#5F7DFF">목표 '+state.tgt+'kg</text>'
+    + '</svg>';
+
+  const rows = [];
+  if (loss){
+    const lossKg = state.cur - state.tgt;
+    rows.push(['줄일 체중', round(lossKg,2)+' kg ('+round(lossKg/state.cur*100,1)+'%)']);
+    rows.push(['안전 감량 속도', t.lossRateLabel+' · 주당 '+round(state.cur*t.lossRate[0],2)+'–'+round(state.cur*t.lossRate[1],2)+' kg']);
+    rows.push(['전체 예상 기간', '약 '+weeksFor(lossKg, state.cur, t.lossRate)]);
+    rows.push(['조정 하한선', fmt(round(floor))+' kcal / 하루']);
+  }
+  $('g-facts').innerHTML = rows.map(r => '<li><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></li>').join('');
+
+  renderGram();
+  track('step3_view', { species:state.sp, kcal: round(kcal), factor: state.fac });
+}
+
+function renderGram(){
+  const perKg = parseFloat($('kcalkg').value), el = $('g-gram');
+  if(!(perKg>0)){ el.textContent=''; return; }
+  const g = (state.rer*state.fac)/perKg*1000;
+  el.innerHTML = '하루 <b>약 '+round(g)+'g</b>. 사료 포장의 kcal/kg 표기를 확인하세요. 100g당 표기라면 10을 곱하면 됩니다.';
+}
+
+$('b-cta').addEventListener('click', async () => {
+  const email = $('email').value.trim().toLowerCase(), ok = $('agree').checked;
+  const err = $('e-cta'), btn = $('b-cta');
+  err.textContent = '';
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length>120){ err.textContent='이메일 주소를 다시 확인해 주세요.'; return; }
+  if(!ok){ err.textContent='이메일 수집·이용에 동의해야 신청할 수 있습니다.'; return; }
+  btn.disabled = true; btn.textContent = '보내는 중…';
+  try{
+    await Store.signup(email, { species: state.sp, mode: state.mode });
+    $('cta-form').style.display='none';
+    $('cta-done').style.display='block';
+    $('cta-done').innerHTML = '<b>신청됐어요.</b> 준비되면 이 주소로 소식 보내드릴게요. 언제든 메일 하단에서 수신을 거부하실 수 있습니다.';
+    track('click_cta_notify', { species: state.sp, mode: state.mode });
+  }catch(e){
+    btn.disabled=false; btn.textContent='신청하기';
+    err.textContent='지금은 신청이 되지 않네요. 잠시 후 다시 눌러 주세요.';
+    track('cta_error');
+  }
+});
+
+$('b3').addEventListener('click', () => {
+  setStep('s1','active'); setStep('s2','locked'); setStep('s3','locked');
+  ['cur','tgt','kcalkg','email'].forEach(id => { $(id).value=''; });
+  $('agree').checked = false;
+  $('cta-form').style.display=''; $('cta-done').style.display='none';
+  $('b-cta').disabled=false; $('b-cta').textContent='신청하기';
+  window.scrollTo({top:0, behavior:'smooth'});
+  track('click_restart');
+});
+
+track('visit', { ref: document.referrer ? new URL(document.referrer).hostname : 'direct', w: window.innerWidth });
+</script>
+</body>
+</html>

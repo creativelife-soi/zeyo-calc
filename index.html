@@ -40,17 +40,17 @@
   .step[data-state="locked"]{ opacity:.32; pointer-events:none; }
   .step[data-state="locked"] .body, .step[data-state="done"] .body{ display:none; }
   .step[data-state="done"] .recap{ display:block; }
-  .recap{ display:none; margin-left:34px; font-size:14.5px; color:var(--ink-soft); }
+  .recap{ display:none; font-size:14.5px; color:var(--ink-soft); text-align:center; }
   .recap b{ color:var(--ink); font-weight:700; }
 
-  .head{ display:flex; align-items:baseline; gap:11px; margin-bottom:4px; }
+  .head{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:4px; }
   .num{ flex:none; width:23px; height:23px; border-radius:50%; border:1px solid var(--rule); color:var(--ink-faint);
-        font-size:12px; font-weight:700; line-height:21px; text-align:center; transform:translateY(3px); }
+        font-size:12px; font-weight:700; line-height:21px; text-align:center; }
   .step[data-state="active"] .num{ background:var(--ink); border-color:var(--ink); color:#fff; }
   .step[data-state="done"] .num{ background:var(--blue-tint); border-color:var(--blue-line); color:var(--blue-deep); }
   h2{ margin:0; font-size:18px; font-weight:700; letter-spacing:-0.02em; }
-  .hint{ margin:2px 0 18px 34px; color:var(--ink-faint); font-size:13.5px; }
-  .body{ margin-left:34px; }
+  .hint{ margin:2px 0 18px; color:var(--ink-faint); font-size:13.5px; text-align:center; }
+  .body{ text-align:center; }
 
   .field{ margin-bottom:17px; }
   label{ display:block; font-size:13.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
@@ -97,7 +97,7 @@
          font-size:13.5px; color:var(--blue-deep); border-radius:0 var(--radius) var(--radius) 0; line-height:1.85; }
   .info b{ color:var(--blue-deep); }
 
-  .facts{ margin:20px 0 0; padding:0; list-style:none; }
+  .facts{ margin:20px 0 0; padding:0; list-style:none; text-align:left; }
   .facts li{ display:flex; justify-content:space-between; gap:14px; padding:12px 0; border-bottom:1px solid var(--rule); font-size:14.5px; }
   .facts li:first-child{ border-top:1px solid var(--rule); }
   .facts .k{ color:var(--ink-soft); }
@@ -106,7 +106,8 @@
   h4.sec{ margin:30px 0 4px; font-size:15.5px; font-weight:800; letter-spacing:-0.025em; }
   p.seclede{ margin:0 0 12px; font-size:13.5px; color:var(--ink-faint); }
 
-  .cps{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
+  .info, .flag, .rule{ text-align:left; }
+  .cps{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; text-align:left; }
   .cps th{ font-size:12.5px; font-weight:600; color:var(--ink-faint); text-align:left; padding:7px 6px; border-bottom:1px solid var(--rule); }
   .cps td{ padding:12px 6px; border-bottom:1px solid var(--rule); }
   .cps th.n, .cps td.n{ text-align:right; }
@@ -119,9 +120,7 @@
   .rule li:first-child{ border-top:1px solid var(--rule); }
   .rule .w{ flex:none; width:74px; font-weight:700; color:var(--blue-deep); font-size:13px; padding-top:1px; }
 
-  .track{ margin:22px 0 4px; }
-
-  .cta{ margin-top:30px; padding:24px 22px; background:var(--blue); border-radius:var(--radius); color:#fff; }
+  .cta{ margin-top:30px; padding:24px 22px; background:var(--blue); border-radius:var(--radius); color:#fff; text-align:left; }
   .cta h3{ margin:0 0 6px; font-size:17px; font-weight:800; letter-spacing:-0.025em; }
   .cta p{ margin:0 0 18px; font-size:14.5px; color:#DDE4FF; }
   .cta label{ color:#DDE4FF; }
@@ -251,7 +250,6 @@
       <div id="g-cp"></div>
       <div id="g-partial"></div>
 
-      <div class="track" id="g-track"></div>
       <ul class="facts" id="g-facts"></ul>
 
       <div class="cta" id="cta">
@@ -288,10 +286,6 @@
   </section>
 
   <footer>
-    <p><b>계산식</b> — RER = 70 × (목표체중kg)<sup>0.75</sup>, 하루 목표 = RER × 생애단계 계수. 감량 계수는 고양이 0.8, 강아지 1.0. 열량은 처음부터 끝까지 <b>최종 목표 체중</b>을 기준으로 계산합니다. 출처: AAHA, <a href="https://www.aaha.org/resources/2021-aaha-nutrition-and-weight-management-guidelines/weight-reduction-in-the-obese-pet/" target="_blank" rel="noopener">2021 Nutrition and Weight Management Guidelines, Box 1</a>.</p>
-    <p><b>감량 속도와 정체</b> — 강아지 주당 1–2%, 고양이 주당 0.5–2%. 감량이 길어질수록 속도가 느려지는 것은 정상이며, 열량을 계속 줄여야 유지됩니다(초기 주당 1.2% → 672일차 0.1%). 출처: <a href="https://livrepository.liverpool.ac.uk/3001233/" target="_blank" rel="noopener">German, Proc Nutr Soc 2016</a>, <a href="https://vetnutrition.tufts.edu/2018/10/how-fast-is-too-fast-for-my-pet-to-lose-weight/" target="_blank" rel="noopener">Tufts Petfoodology</a>.</p>
-    <p><b>실제 급여량 참고치</b> — 리버풀대 감량 클리닉 실측 평균: 고양이 53 kcal/이상체중kg<sup>0.67</sup>(범위 43–66), 강아지 61 kcal/이상체중kg<sup>0.75</sup>(범위 44–74). 출처: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10318927/" target="_blank" rel="noopener">German et al., Front Vet Sci 2023</a>, <a href="https://bmcvetres.biomedcentral.com/articles/10.1186/s12917-015-0570-y" target="_blank" rel="noopener">German et al., BMC Vet Res 2015</a>.</p>
-    <p><b>부분 감량</b> — 목표를 이상 체중보다 높게 잡는 방식. 고령이거나 비만이 심한 고양이에서 오히려 감량 속도가 빠르고(주 0.81% vs 0.61%) 병원 방문 횟수가 적었으며 근육량이 더 보존됐습니다. 출처: German et al., Front Vet Sci 2023.</p>
     <p>이 계산기는 일반적인 영양 정보를 제공하는 참고 도구이며 진료나 처방을 대신하지 않습니다. 질병이 있거나 감량 폭이 큰 경우, 계획을 시작하기 전에 수의사와 상의하세요.</p>
     <p><b>문의</b> — 소이 · <a href="mailto:soi_creativelife@naver.com">soi_creativelife@naver.com</a>. 수신 거부나 이메일 삭제를 원하시면 이 주소로 알려주세요. 바로 처리해 드립니다.</p>
   </footer>
@@ -563,24 +557,6 @@ function render3(){
       + '중요한 건 <b>하루 열량은 그대로 ' + fmt(round(kcal)) + ' kcal</b>이라는 점입니다. 먹는 양을 늘리는 게 아니라 결승선을 앞당기는 것이고, 그래서 효과가 있습니다.</div>';
     track('partial_shown', { species: state.sp, loss_pct: round(lossPct*100,1) });
   } else { $('g-partial').innerHTML = ''; }
-
-  // 체중 눈금
-  const lo2 = Math.min(state.cur,state.tgt), hi2 = Math.max(state.cur,state.tgt);
-  const pad = Math.max((hi2-lo2)*0.45, hi2*0.06), a = lo2-pad, b = hi2+pad;
-  const px = v => 8 + ((v-a)/(b-a))*584;
-  let ticks='';
-  for(let i=0;i<=24;i++){ const x=8+(i/24)*584;
-    ticks += '<line x1="'+x.toFixed(1)+'" y1="'+(i%6===0?26:31)+'" x2="'+x.toFixed(1)+'" y2="36" stroke="#DDE2F2" stroke-width="1"/>'; }
-  const xC=px(state.cur), xT=px(state.tgt), anch = x => x>520?'end':(x<60?'start':'middle');
-  $('g-track').innerHTML =
-    '<svg viewBox="0 0 600 62" width="100%" height="62" role="img" aria-label="현재 '+state.cur+'kg에서 목표 '+state.tgt+'kg까지">'
-    + ticks
-    + '<line x1="'+Math.min(xC,xT)+'" y1="36" x2="'+Math.max(xC,xT)+'" y2="36" stroke="#5F7DFF" stroke-width="2"/>'
-    + '<circle cx="'+xC+'" cy="36" r="4.5" fill="#1A2038"/>'
-    + '<circle cx="'+xT+'" cy="36" r="4.5" fill="#5F7DFF"/>'
-    + '<text x="'+xC+'" y="20" text-anchor="'+anch(xC)+'" font-size="12.5" font-weight="700" fill="#1A2038">현재 '+state.cur+'kg</text>'
-    + '<text x="'+xT+'" y="55" text-anchor="'+anch(xT)+'" font-size="12.5" font-weight="700" fill="#5F7DFF">목표 '+state.tgt+'kg</text>'
-    + '</svg>';
 
   const rows = [];
   if (loss){

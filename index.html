@@ -40,17 +40,16 @@
   .step[data-state="locked"]{ opacity:.32; pointer-events:none; }
   .step[data-state="locked"] .body, .step[data-state="done"] .body{ display:none; }
   .step[data-state="done"] .recap{ display:block; }
-  .recap{ display:none; font-size:14.5px; color:var(--ink-soft); text-align:center; }
+  .recap{ display:none; font-size:14.5px; color:var(--ink-soft); }
   .recap b{ color:var(--ink); font-weight:700; }
 
-  .head{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:4px; }
+  .head{ display:flex; align-items:center; gap:8px; margin-bottom:4px; }
   .num{ flex:none; width:23px; height:23px; border-radius:50%; border:1px solid var(--rule); color:var(--ink-faint);
         font-size:12px; font-weight:700; line-height:21px; text-align:center; }
   .step[data-state="active"] .num{ background:var(--ink); border-color:var(--ink); color:#fff; }
   .step[data-state="done"] .num{ background:var(--blue-tint); border-color:var(--blue-line); color:var(--blue-deep); }
   h2{ margin:0; font-size:18px; font-weight:700; letter-spacing:-0.02em; }
-  .hint{ margin:2px 0 18px; color:var(--ink-faint); font-size:13.5px; text-align:center; }
-  .body{ text-align:center; }
+  .hint{ margin:2px 0 18px; color:var(--ink-faint); font-size:13.5px; }
 
   .field{ margin-bottom:17px; }
   label{ display:block; font-size:13.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
@@ -97,7 +96,7 @@
          font-size:13.5px; color:var(--blue-deep); border-radius:0 var(--radius) var(--radius) 0; line-height:1.85; }
   .info b{ color:var(--blue-deep); }
 
-  .facts{ margin:20px 0 0; padding:0; list-style:none; text-align:left; }
+  .facts{ margin:20px 0 0; padding:0; list-style:none; }
   .facts li{ display:flex; justify-content:space-between; gap:14px; padding:12px 0; border-bottom:1px solid var(--rule); font-size:14.5px; }
   .facts li:first-child{ border-top:1px solid var(--rule); }
   .facts .k{ color:var(--ink-soft); }
@@ -106,8 +105,7 @@
   h4.sec{ margin:30px 0 4px; font-size:15.5px; font-weight:800; letter-spacing:-0.025em; }
   p.seclede{ margin:0 0 12px; font-size:13.5px; color:var(--ink-faint); }
 
-  .info, .flag, .rule{ text-align:left; }
-  .cps{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; text-align:left; }
+  .cps{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
   .cps th{ font-size:12.5px; font-weight:600; color:var(--ink-faint); text-align:left; padding:7px 6px; border-bottom:1px solid var(--rule); }
   .cps td{ padding:12px 6px; border-bottom:1px solid var(--rule); }
   .cps th.n, .cps td.n{ text-align:right; }
@@ -120,7 +118,7 @@
   .rule li:first-child{ border-top:1px solid var(--rule); }
   .rule .w{ flex:none; width:74px; font-weight:700; color:var(--blue-deep); font-size:13px; padding-top:1px; }
 
-  .cta{ margin-top:30px; padding:24px 22px; background:var(--blue); border-radius:var(--radius); color:#fff; text-align:left; }
+  .cta{ margin-top:30px; padding:24px 22px; background:var(--blue); border-radius:var(--radius); color:#fff; }
   .cta h3{ margin:0 0 6px; font-size:17px; font-weight:800; letter-spacing:-0.025em; }
   .cta p{ margin:0 0 18px; font-size:14.5px; color:#DDE4FF; }
   .cta label{ color:#DDE4FF; }

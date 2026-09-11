@@ -320,11 +320,12 @@ const Store = (() => {
   }
   async function signup(email, props = {}){
     if(!on){ console.debug('[signup]', email, props); return 'ok'; }
-    const res = await fetch(CONFIG.SUPABASE_URL + '/rest/v1/signups?on_conflict=email', {
-      method:'POST', headers: headers({'Prefer':'resolution=ignore-duplicates,return=minimal'}),
+    const res = await fetch(CONFIG.SUPABASE_URL + '/rest/v1/signups', {
+      method:'POST', headers: headers({'Prefer':'return=minimal'}),
       body: JSON.stringify({ email, source: CONFIG.SITE_ID, props }) });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    return 'ok';
+    // 이미 신청된 이메일은 409. upsert(on_conflict)는 SELECT 권한이 필요해 쓰지 않습니다.
+    if(res.ok || res.status === 409) return 'ok';
+    throw new Error('HTTP ' + res.status);
   }
   return { track, signup };
 })();
